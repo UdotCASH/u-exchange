@@ -1,9 +1,6 @@
 import { ChainId, TokenAmount } from '@antron3000/u-exchange-sdk'
 import React, { useState } from 'react'
 import { Text } from 'rebass'
-import { NavLink } from 'react-router-dom'
-import { darken } from 'polished'
-import { useTranslation } from 'react-i18next'
 
 import styled from 'styled-components'
 
@@ -15,11 +12,13 @@ import { useETHBalances, useAggregateUniBalance } from '../../state/wallet/hooks
 import { CardNoise } from '../earn/styled'
 import { CountUp } from 'use-count-up'
 import { TYPE} from '../../theme'
+import { useTranslation } from 'react-i18next'
 
 import { YellowCard } from '../Card'
-import { Moon, Sun } from 'react-feather'
-import Menu from '../Menu'
+import { Moon, Sun, Shuffle, Layers } from 'react-feather'
+import { darken } from 'polished'
 
+import { NavLink } from 'react-router-dom'
 import Row, { RowFixed } from '../Row'
 import Web3Status from '../Web3Status'
 import ClaimModal from '../claim/ClaimModal'
@@ -30,6 +29,8 @@ import { Dots } from '../swap/styleds'
 import Modal from '../Modal'
 import UniBalanceContent from './UniBalanceContent'
 import usePrevious from '../../hooks/usePrevious'
+import BinanceLogo from '../../assets/svg/binance-logo.svg'
+import MaticLogo from '../../assets/images/matic-logo.png'
 
 const HeaderFrame = styled.div`
   display: grid;
@@ -45,7 +46,7 @@ const HeaderFrame = styled.div`
   padding: 1rem;
   z-index: 2;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    grid-template-columns: 1fr;
+    display: flex;
     padding: 0 1rem;
     width: calc(100%);
     position: relative;
@@ -55,6 +56,8 @@ const HeaderFrame = styled.div`
         padding: 0.5rem 1rem;
   `}
 `
+
+const activeClassName = 'ACTIVE'
 
 const HeaderControls = styled.div`
   display: flex;
@@ -78,6 +81,25 @@ const HeaderControls = styled.div`
     border-radius: 0;
     background-color: ${({ theme }) => theme.bg1};
   `};
+
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    flex-direction: row;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    justify-self: center;
+    width: 100%;
+    max-width: 960px;
+    padding: 1rem;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+    z-index: 99;
+    height: 110px;
+    justify-content: center;
+    border-radius: 0;
+    background-color: ${({ theme }) => theme.bg1};
+  `};
 `
 
 const HeaderElement = styled.div`
@@ -89,6 +111,10 @@ const HeaderElement = styled.div`
    flex-direction: row-reverse;
     align-items: center;
   `};
+
+  ${({ theme }) => theme.mediaWidth.upToSmall`
+    padding: 8px;
+  `};
 `
 
 const HeaderElementWrap = styled.div`
@@ -98,15 +124,18 @@ const HeaderElementWrap = styled.div`
 
 const HeaderRow = styled(RowFixed)`
   ${({ theme }) => theme.mediaWidth.upToMedium`
-   width: 100%;
   `};
 `
 
 const HeaderLinks = styled(Row)`
-  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  display: none;
   ${({ theme }) => theme.mediaWidth.upToMedium`
-    padding: 1rem 0 1rem 1rem;
-    justify-content: flex-end;
+    display: flex;
+  
 `};
 `
 
@@ -194,7 +223,14 @@ const UniIcon = styled.div`
   }
 `
 
-const activeClassName = 'ACTIVE'
+const StyledLogo = styled.img<{ size: string }>`
+  width: ${({ size }) => size};
+  height: ${({ size }) => size};
+  border-radius: ${({ size }) => size};
+  box-shadow: 0px 6px 10px rgba(0, 0, 0, 0.075);
+  background-color: ${({ theme }) => theme.white};
+  margin-right: 8px;
+`
 
 const StyledNavLink = styled(NavLink).attrs({
   activeClassName
@@ -207,7 +243,6 @@ const StyledNavLink = styled(NavLink).attrs({
   text-decoration: none;
   color: ${({ theme }) => theme.text2};
   font-size: 1rem;
-  width: fit-content;
   margin: 0 12px;
   font-weight: 500;
 
@@ -221,6 +256,10 @@ const StyledNavLink = styled(NavLink).attrs({
   :focus {
     color: ${({ theme }) => darken(0.1, theme.text1)};
   }
+`
+
+const Spacer = styled.span`
+  width: 8px;
 `
 
 // const StyledExternalLink = styled(ExternalLink).attrs({
@@ -267,6 +306,9 @@ export const StyledMenuButton = styled.button`
   margin-left: 8px;
   padding: 0.15rem 0.5rem;
   border-radius: 0rem;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
 
   :hover,
   :focus {
@@ -291,8 +333,8 @@ const NETWORK_LABELS: { [chainId in ChainId]?: string } = {
 }
 
 export default function Header() {
-  const { account, chainId } = useActiveWeb3React()
   const { t } = useTranslation()
+  const { account, chainId } = useActiveWeb3React()
 
   const userEthBalance = useETHBalances(account ? [account] : [])?.[account ?? '']
   // const [isDark] = useDarkModeManager()
@@ -343,8 +385,19 @@ export default function Header() {
             <img width={'24px'} src={darkMode ? LogoDark : Logo} alt="logo" />
           </UniIcon>
         </Title>
+      </HeaderRow>
         <HeaderLinks>
-          <StyledNavLink id={`swap-nav-link`} to={'/exchange'}>
+          <StyledNavLink
+            id={`swap-nav-link`}
+            to={'/exchange'}
+            isActive={(match, { pathname }) =>
+              Boolean(match) ||
+              pathname.startsWith('/exchange') ||
+              pathname === '/'
+            }
+          >
+            <Shuffle size={20} />
+            <Spacer />
             {t('Exchange')}
           </StyledNavLink>
           <StyledNavLink
@@ -358,6 +411,8 @@ export default function Header() {
               pathname.startsWith('/find')
             }
           >
+            <Layers size={20} />
+            <Spacer />
             {t('Liquidity')}
           </StyledNavLink>
           {/*<StyledNavLink id={`stake-nav-link`} to={'/uni'}>
@@ -370,7 +425,6 @@ export default function Header() {
             Info <span style={{ fontSize: '11px' }}>↗</span>
           </StyledExternalLink>*/}
         </HeaderLinks>
-      </HeaderRow>
       <HeaderControls>
         <HeaderElement>
           <HideSmall>
@@ -428,12 +482,13 @@ export default function Header() {
             {darkMode ? <Moon size={20} /> : <Sun size={20} />}
           </StyledMenuButton>
           <StyledMenuButton onClick={() => switchToBSC()}>
+            <StyledLogo size={'20px'} src={BinanceLogo} />
             To BSC
           </StyledMenuButton>
           <StyledMenuButton onClick={() => switchToPolygon()}>
+            <StyledLogo size={'20px'} src={MaticLogo} />
             To Polygon
           </StyledMenuButton>
-          <Menu />
         </HeaderElementWrap>
       </HeaderControls>
     </HeaderFrame>
