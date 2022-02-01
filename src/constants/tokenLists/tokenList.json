@@ -121,8 +121,8 @@
     },
     {
       "chainId": 31,
-      "address": "0x3D1190637E229953886A4F1106191E5480940863",
-      "name": "Wrapped Smart Bitcoin",
+      "address": "0x0C7c9b794EF4beF7110EC33f95f1eb098b3a6a38",
+      "name": "Wrapped tRBTC",
       "symbol": "WRBTC",
       "decimals": 18,
       "logoURI": "https://i.imgur.com/Y2oqSOp.png"
